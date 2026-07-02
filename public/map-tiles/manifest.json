@@ -1,0 +1,20 @@
+{
+  "version": "20b48d7acb0d",
+  "tileSize": 256,
+  "minZoom": -8,
+  "maxZoom": 0,
+  "tileFormat": "webp",
+  "webpQuality": 92,
+  "webpMethod": 0,
+  "webpLossless": false,
+  "generatedAt": "2026-07-02T17:41:51.342674+00:00",
+  "layers": [
+    "mainland",
+    "castle",
+    "lake",
+    "snow-mountain",
+    "village",
+    "volcano"
+  ],
+  "totalTiles": 3923
+}

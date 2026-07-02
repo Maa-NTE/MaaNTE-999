@@ -4,6 +4,7 @@ import L from 'leaflet'
 import { useMapApp } from './composables/useMapApp'
 import { mapPixelToGame } from './data/locations'
 import { INITIAL_ZOOM, MAP_ZOOM_SNAP, MAX_ZOOM, MIN_ZOOM, PICTURE_IN_PICTURE_ZOOM_OFFSET } from './constants/mapApp'
+import { createMapTileLayer } from './utils/mapTiles'
 import announcement from './data/announcements.json'
 
 // App.vue 保留页面结构，所有交互状态和业务动作都由组合函数提供。
@@ -523,7 +524,7 @@ const initializePictureInPictureMap = (pipWindow) => {
     zoomAnimation: false,
     markerZoomAnimation: false,
   })
-  L.imageOverlay(publicAssetUrl(layer.imageUrl), bounds).addTo(pictureInPictureMap)
+  createMapTileLayer(layer).addTo(pictureInPictureMap)
   pictureInPictureMarkerLayer = createPictureInPictureMarkerLayer().addTo(pictureInPictureMap)
   if (mapView.value) syncPictureInPictureView()
   else pictureInPictureMap.setView(bounds.getCenter(), getPictureInPictureZoom(INITIAL_ZOOM))

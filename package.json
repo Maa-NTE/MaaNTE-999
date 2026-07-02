@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --configLoader runner --host 127.0.0.1",
     "build": "vite build --configLoader runner",
-    "build:tiles": "python scripts/build-map-tiles.py --source-dir public/maps",
+    "build:tiles": "python scripts/build-map-tiles.py",
     "import:map-points": "node scripts/import-cleaned-map-points.mjs",
     "import:treasureboxes": "node scripts/import-cleaned-map-points.mjs",
     "import:finaltower": "node scripts/import-finaltower-csv-points.mjs",

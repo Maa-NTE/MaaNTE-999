@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 import shutil
 import subprocess
 from datetime import datetime, timezone
@@ -36,14 +37,47 @@ def run_node_metadata():
         ".map((layer) => ({ id: layer.id, imageUrl: layer.imageUrl, "
         "width: layer.image?.width || layer.width, height: layer.image?.height || layer.height }))));"
     )
-    result = subprocess.run(
-        ["node", "--input-type=module", "-e", script],
-        cwd=PROJECT_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return json.loads(result.stdout)
+    try:
+        result = subprocess.run(
+            ["node", "--input-type=module", "-e", script],
+            cwd=PROJECT_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return json.loads(result.stdout)
+    except subprocess.CalledProcessError:
+        return parse_layer_metadata_from_source()
+
+
+def parse_layer_metadata_from_source():
+    source = (PROJECT_ROOT / "src" / "data" / "layers.js").read_text(encoding="utf-8")
+    constants = {
+        match.group("name"): match.group("value")
+        for match in re.finditer(
+            r"\bconst\s+(?P<name>[A-Z0-9_]+)\s*=\s*['\"](?P<value>[^'\"]+)['\"]",
+            source,
+        )
+    }
+    layers = []
+    for match in re.finditer(r"layer\(\{(?P<body>.*?)\n\s*\}\)", source, re.DOTALL):
+        body = match.group("body")
+        values = {}
+        id_match = re.search(r"\bid\s*:\s*(?:['\"]([^'\"]+)['\"]|([A-Z0-9_]+))", body)
+        if id_match:
+            values["id"] = id_match.group(1) or constants.get(id_match.group(2))
+        image_match = re.search(r"\bimageUrl\s*:\s*['\"]([^'\"]+)['\"]", body)
+        if image_match:
+            values["imageUrl"] = image_match.group(1)
+        for key in ("width", "height"):
+            value_match = re.search(rf"\b{key}\s*:\s*(\d+)", body)
+            if value_match:
+                values[key] = int(value_match.group(1))
+        if {"id", "imageUrl", "width", "height"}.issubset(values):
+            layers.append(values)
+    if not layers:
+        raise RuntimeError("No map layers with id, imageUrl, width, and height found in src/data/layers.js")
+    return layers
 
 
 def resolve_inside_project(path):

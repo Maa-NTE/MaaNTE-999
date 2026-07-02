@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, URL } from 'node:url'
@@ -22,6 +23,34 @@ const MAP_LAYER_TRANSFORMS_FILE = process.env.MAANTE_MAP_LAYER_TRANSFORMS_FILE
 const UPLOADS_DIR = process.env.MAANTE_UPLOADS_DIR
   ? path.resolve(process.env.MAANTE_UPLOADS_DIR)
   : fileURLToPath(new URL('./public/images/uploads', import.meta.url))
+const MAPS_DIR = fileURLToPath(new URL('./public/maps', import.meta.url))
+const MAP_TILES_MANIFEST = fileURLToPath(new URL('./public/map-tiles/manifest.json', import.meta.url))
+
+function computeMapAssetVersion() {
+  try {
+    if (fs.existsSync(MAP_TILES_MANIFEST)) {
+      const manifest = JSON.parse(fs.readFileSync(MAP_TILES_MANIFEST, 'utf8'))
+      if (manifest?.version) return String(manifest.version)
+    }
+
+    if (!fs.existsSync(MAPS_DIR)) return String(Date.now())
+    const signature = fs.readdirSync(MAPS_DIR, { withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => {
+        const stat = fs.statSync(path.join(MAPS_DIR, entry.name))
+        return `${entry.name}:${stat.size}:${Math.trunc(stat.mtimeMs)}`
+      })
+      .sort()
+      .join('|')
+    return signature
+      ? crypto.createHash('sha1').update(signature).digest('hex').slice(0, 12)
+      : String(Date.now())
+  } catch {
+    return String(Date.now())
+  }
+}
+
+const MAP_ASSET_VERSION = computeMapAssetVersion()
 
 function sendJson(response, payload, statusCode = 200) {
   response.statusCode = statusCode
@@ -370,6 +399,9 @@ function localMapEditorPlugin() {
 export default defineConfig({
   base: './',
   plugins: [vue(), localMapEditorPlugin()],
+  define: {
+    __MAP_ASSET_VERSION__: JSON.stringify(MAP_ASSET_VERSION),
+  },
   server: {
     // The editor writes this file through /api/map-data. Reloading the page
     // after that write would discard the user's current filters and map state.

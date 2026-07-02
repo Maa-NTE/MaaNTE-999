@@ -30,6 +30,7 @@ import {
   ROUTES_STORAGE_KEY,
 } from '../constants/mapApp'
 import { clone, publicAssetUrl } from '../utils/assets'
+import { createMapTileLayer } from '../utils/mapTiles'
 import {
   normalizeNavigationHost,
   normalizeNavigationPort,
@@ -1115,14 +1116,7 @@ export function useMapApp() {
   function renderMapImageLayer() {
     if (!map) return
     imageLayer?.remove()
-    imageLayer = L.imageOverlay(
-      publicAssetUrl(activeMapLayer.value.imageUrl),
-      getLayerBounds(),
-      {
-        interactive: false,
-        crossOrigin: false,
-      },
-    ).addTo(map)
+    imageLayer = createMapTileLayer(activeMapLayer.value).addTo(map)
     imageLayer.setZIndex(1)
     updateMapZoomBounds()
   }
