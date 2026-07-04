@@ -611,7 +611,16 @@ onBeforeUnmount(() => {
         <div class="brand-copy">
           <p class="eyebrow">MaaNTE 999Nights Map</p>
           <div class="brand-title-row">
-            <h1>MaaNTE 九百九十九夜在线地图</h1>
+            <details class="brand-map-menu">
+              <summary>
+                <h1>MaaNTE 九百九十九夜在线地图</h1>
+                <span class="brand-map-menu__hint">前往其它地图站</span>
+              </summary>
+              <div class="brand-map-menu__panel">
+                <a href="https://map.maante.org/" target="_blank" rel="noopener noreferrer">MaaNTE在线地图工具</a>
+                <a href="https://pph.maante.org/" target="_blank" rel="noopener noreferrer">粉爪大劫案在线地图</a>
+              </div>
+            </details>
           </div>
         </div>
       </div>
